@@ -109,9 +109,9 @@
         [self setAuthenticationForRequest:request];
     }
     
-    connection = [[NSURLConnection alloc] init];
+    self.connection = [[NSURLConnection alloc] init];
     
-    if (connection == nil) {
+    if (self.connection == nil) {
         _numberOfRequests--;
         
         if (_numberOfRequests == 0) {
