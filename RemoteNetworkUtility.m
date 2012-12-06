@@ -182,15 +182,24 @@
 #if DEBUG
     NSLog(@"Making request: %@",url);
 #endif
+    NSString *boundary = [NSString stringWithString:@"14737809831466499882746641449"];
     NSMutableURLRequest *request = [self createRequest:url];
     [request setHTTPMethod:@"POST"];
-    
-    NSString *boundary = [NSString stringWithString:@"14737809831466499882746641449"];
+
+    NSData *requestData = [NSJSONSerialization dataWithJSONObject:params options:NSJSONReadingAllowFragments error:nil];
     
     NSString *contentType = [NSString stringWithFormat:@"multipart/form-data; boundary=%@",boundary];
 	[request addValue:contentType forHTTPHeaderField: @"Content-Type"];
     
     NSMutableData *body = [NSMutableData data];
+    
+    for (NSString *param in params) {
+        [body appendData:[[NSString stringWithFormat:@"--%@\r\n", boundary] dataUsingEncoding:NSUTF8StringEncoding]];
+        [body appendData:[[NSString stringWithFormat:@"Content-Disposition: form-data; name=\"%@\"\r\n\r\n", param] dataUsingEncoding:NSUTF8StringEncoding]];
+        [body appendData:[[NSString stringWithFormat:@"%@\r\n", [params objectForKey:param]] dataUsingEncoding:NSUTF8StringEncoding]];
+    }
+
+    
 	[body appendData:[[NSString stringWithFormat:@"\r\n--%@\r\n",boundary] dataUsingEncoding:NSUTF8StringEncoding]];
     [body appendData:[[NSString stringWithFormat:@"Content-Disposition: form-data; name=\"%@\"; filename=\"%@.jpeg\"\r\n",name, name] dataUsingEncoding:NSUTF8StringEncoding]];
     
