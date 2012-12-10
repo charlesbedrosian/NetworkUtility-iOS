@@ -63,9 +63,10 @@
     NSLog(@"Making request: %@ params: %@",url,params);
 #endif    
     NSMutableURLRequest *request = [self createRequest:url];
-    
-    [self setRequestParameters:params
+    if (params != nil) {
+        [self setRequestParameters:params
                     forRequest:request];
+    }
     [request setHTTPMethod:@"PUT"];
     
     return [self makeRequest:request authenticate:authenticate withError:error];
@@ -77,9 +78,10 @@
     NSLog(@"Making request: %@ params: %@",url,params);
 #endif    
     NSMutableURLRequest *request = [self createRequest:url];
-    
-    [self setRequestParameters:params
+    if (params != nil) {
+        [self setRequestParameters:params
                     forRequest:request];
+    }
     [request setHTTPMethod:@"DELETE"];
     
     return [self makeRequest:request authenticate:authenticate withError:error];
@@ -179,33 +181,37 @@
 #if DEBUG
     NSLog(@"Making request: %@",url);
 #endif
-    NSString *boundary = [NSString stringWithString:@"14737809831466499882746641449"];
+    NSString *boundary = [NSString stringWithString:@"----------V2ymHFg03ehbqgZCaKO6jy"];
     NSMutableURLRequest *request = [self createRequest:url];
     [request setHTTPMethod:@"POST"];
 
-    NSData *requestData = [NSJSONSerialization dataWithJSONObject:params options:NSJSONReadingAllowFragments error:nil];
     
     NSString *contentType = [NSString stringWithFormat:@"multipart/form-data; boundary=%@",boundary];
 	[request addValue:contentType forHTTPHeaderField: @"Content-Type"];
     
     NSMutableData *body = [NSMutableData data];
     
+    NSData *imageData = UIImageJPEGRepresentation(image, 1.0);
+    if (imageData) {
+        [body appendData:[[NSString stringWithFormat:@"--%@\r\n", boundary] dataUsingEncoding:NSUTF8StringEncoding]];
+        [body appendData:[[NSString stringWithFormat:@"Content-Disposition: form-data; name=\"%@\"; filename=\%@.jpeg\"\r\n", name, name] dataUsingEncoding:NSUTF8StringEncoding]];
+        [body appendData:[[NSString stringWithString:@"Content-Type: image/jpeg\r\n\r\n"] dataUsingEncoding:NSUTF8StringEncoding]];
+        [body appendData:imageData];
+        [body appendData:[[NSString stringWithFormat:@"\r\n"] dataUsingEncoding:NSUTF8StringEncoding]];
+    }
+    
     for (NSString *param in params) {
         [body appendData:[[NSString stringWithFormat:@"--%@\r\n", boundary] dataUsingEncoding:NSUTF8StringEncoding]];
         [body appendData:[[NSString stringWithFormat:@"Content-Disposition: form-data; name=\"%@\"\r\n\r\n", param] dataUsingEncoding:NSUTF8StringEncoding]];
         [body appendData:[[NSString stringWithFormat:@"%@\r\n", [params objectForKey:param]] dataUsingEncoding:NSUTF8StringEncoding]];
     }
-
     
-	[body appendData:[[NSString stringWithFormat:@"\r\n--%@\r\n",boundary] dataUsingEncoding:NSUTF8StringEncoding]];
-    [body appendData:[[NSString stringWithFormat:@"Content-Disposition: form-data; name=\"%@\"; filename=\"%@.jpeg\"\r\n",name, name] dataUsingEncoding:NSUTF8StringEncoding]];
-    
-    [body appendData:[[NSString stringWithString:@"Content-Type: image/jpeg\r\n\r\n"] dataUsingEncoding:NSUTF8StringEncoding]];
-    
-	[body appendData:UIImageJPEGRepresentation(image, 100)];
-	[body appendData:[[NSString stringWithFormat:@"\r\n--%@--\r\n",boundary] dataUsingEncoding:NSUTF8StringEncoding]];
+    [body appendData:[[NSString stringWithFormat:@"--%@--\r\n", boundary] dataUsingEncoding:NSUTF8StringEncoding]];
     
     [request setHTTPBody:body];
+    
+    NSString *postLength = [NSString stringWithFormat:@"%d", [body length]];
+    [request setValue:postLength forHTTPHeaderField:@"Content-Length"];
     
     return [self makeRequest:request authenticate:authenticate withError:error];
 }
