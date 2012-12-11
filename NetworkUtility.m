@@ -31,6 +31,11 @@ static NetworkUtility *_instance = nil;
     return [self.delegate get:url withParameters:params authenticate:authenticate error:error];
 }
 
+- (ResponseData *)postForHttp:(NSString *)url withParameters:(NSDictionary *)params authenticate:(BOOL)authenticate error:(NSError *)error
+{
+    return [self.delegate postForHttp:url withParameters:params authenticate:authenticate error:error];
+}
+
 - (ResponseData *)post:(NSString *)url withParameters:(NSDictionary *)params authenticate:(BOOL)authenticate error:(NSError *)error
 {
     return [self.delegate post:url withParameters:params authenticate:authenticate error:error];

@@ -216,15 +216,50 @@
     return [self makeRequest:request authenticate:authenticate withError:error];
 }
 
+- (ResponseData *)postForHttp:(NSString *)url withParameters:(NSDictionary *)params authenticate:(BOOL)authenticate error:(NSError *)error
+{
+#if DEBUG
+    NSLog(@"Making request: %@",url);
+#endif
+    NSString *boundary = [NSString stringWithString:@"----------V2ymHFg03ehbqgZCaKO6jy"];
+    NSMutableURLRequest *request = [self createRequest:url];
+    [request setHTTPMethod:@"POST"];
+    
+    
+    NSString *contentType = [NSString stringWithFormat:@"multipart/form-data; boundary=%@",boundary];
+	[request addValue:contentType forHTTPHeaderField: @"Content-Type"];
+    
+    NSMutableData *body = [NSMutableData data];
+
+    for (NSString *param in params) {
+        [body appendData:[[NSString stringWithFormat:@"--%@\r\n", boundary] dataUsingEncoding:NSUTF8StringEncoding]];
+        [body appendData:[[NSString stringWithFormat:@"Content-Disposition: form-data; name=\"%@\"\r\n\r\n", param] dataUsingEncoding:NSUTF8StringEncoding]];
+        [body appendData:[[NSString stringWithFormat:@"%@\r\n", [params objectForKey:param]] dataUsingEncoding:NSUTF8StringEncoding]];
+    }
+    
+    [body appendData:[[NSString stringWithFormat:@"--%@--\r\n", boundary] dataUsingEncoding:NSUTF8StringEncoding]];
+    
+    [request setHTTPBody:body];
+    
+    NSString *postLength = [NSString stringWithFormat:@"%d", [body length]];
+    [request setValue:postLength forHTTPHeaderField:@"Content-Length"];
+    
+    return [self makeRequest:request authenticate:authenticate withError:error];
+}
+
+
 
 - (void)setRequestParameters:(NSDictionary *)params forRequest:(NSMutableURLRequest *)request
-{    
-    NSData *requestData = [NSJSONSerialization dataWithJSONObject:params options:NSJSONReadingAllowFragments error:nil];
+{
+    NSError *error = nil;
+    NSData *requestData = [NSJSONSerialization dataWithJSONObject:params options:nil error:&error];
    
+    NSLog(@"%@", [error description]);
+    
     NSString *requestLength = [NSString stringWithFormat:@"%d", [requestData length]];
     NSLog(@"sending this JSON :::: %@",[[NSString alloc]initWithData:requestData encoding:NSUTF8StringEncoding]);
     [request setValue:requestLength forHTTPHeaderField:@"Content-Length"];
-    [request setValue:@"application/json" forHTTPHeaderField:@"content-type"]; 
+    [request setValue:@"application/json" forHTTPHeaderField:@"content-type"];
     [request setHTTPBody:requestData];
 }
 
