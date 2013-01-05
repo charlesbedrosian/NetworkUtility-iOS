@@ -181,7 +181,7 @@
 #if DEBUG
     NSLog(@"Making request: %@",url);
 #endif
-    NSString *boundary = [NSString stringWithString:@"----------V2ymHFg03ehbqgZCaKO6jy"];
+    NSString *boundary = @"----------V2ymHFg03ehbqgZCaKO6jy";
     NSMutableURLRequest *request = [self createRequest:url];
     [request setHTTPMethod:@"POST"];
 
@@ -195,7 +195,7 @@
     if (imageData) {
         [body appendData:[[NSString stringWithFormat:@"--%@\r\n", boundary] dataUsingEncoding:NSUTF8StringEncoding]];
         [body appendData:[[NSString stringWithFormat:@"Content-Disposition: form-data; name=\"%@\"; filename=\%@.jpeg\"\r\n", name, name] dataUsingEncoding:NSUTF8StringEncoding]];
-        [body appendData:[[NSString stringWithString:@"Content-Type: image/jpeg\r\n\r\n"] dataUsingEncoding:NSUTF8StringEncoding]];
+        [body appendData:[@"Content-Type: image/jpeg\r\n\r\n" dataUsingEncoding:NSUTF8StringEncoding]];
         [body appendData:imageData];
         [body appendData:[[NSString stringWithFormat:@"\r\n"] dataUsingEncoding:NSUTF8StringEncoding]];
     }
@@ -221,7 +221,7 @@
 #if DEBUG
     NSLog(@"Making request: %@",url);
 #endif
-    NSString *boundary = [NSString stringWithString:@"----------V2ymHFg03ehbqgZCaKO6jy"];
+    NSString *boundary = @"----------V2ymHFg03ehbqgZCaKO6jy";
     NSMutableURLRequest *request = [self createRequest:url];
     [request setHTTPMethod:@"POST"];
     
@@ -252,7 +252,7 @@
 - (void)setRequestParameters:(NSDictionary *)params forRequest:(NSMutableURLRequest *)request
 {
     NSError *error = nil;
-    NSData *requestData = [NSJSONSerialization dataWithJSONObject:params options:nil error:&error];
+    NSData *requestData = [NSJSONSerialization dataWithJSONObject:params options:(NSJSONWritingOptions)nil error:&error];
    
     NSLog(@"%@", [error description]);
     
